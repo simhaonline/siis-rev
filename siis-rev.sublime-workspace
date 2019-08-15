@@ -4,6 +4,26 @@
 		"selected_items":
 		[
 			[
+				"con",
+				"conn_file_logger"
+			],
+			[
+				"file",
+				"file_logger"
+			],
+			[
+				"fil",
+				"file_logger"
+			],
+			[
+				"conn",
+				"connector"
+			],
+			[
+				"ac",
+				"account_id"
+			],
+			[
 				"MODE",
 				"MODE_IND_MARGIN"
 			],
@@ -108,10 +128,6 @@
 				"transactions"
 			],
 			[
-				"conn",
-				"_connector"
-			],
-			[
 				"ini",
 				"init"
 			],
@@ -158,10 +174,6 @@
 			[
 				"conf",
 				"configured_markets"
-			],
-			[
-				"con",
-				"connect"
 			],
 			[
 				"co",
@@ -502,18 +514,6 @@
 			[
 				"vol",
 				"volumes"
-			],
-			[
-				"_wm",
-				"_wmas"
-			],
-			[
-				"_pre",
-				"_prev_cd"
-			],
-			[
-				"_la",
-				"_last_count"
 			]
 		]
 	},
@@ -528,36 +528,6 @@
 			}
 		},
 		{
-			"file": "connectors/database/database.py",
-			"settings":
-			{
-				"buffer_size": 15140,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "connectors/database/pgsql.py",
-			"settings":
-			{
-				"buffer_size": 27354,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"contents": "# @date 2018-08-07\n# @author Frederic SCHERMA\n# @license Copyright (c) 2018 Dream Overflow\n# Storage service, mysql implementation\n\nimport os\nimport json\nimport time\nimport datetime\nimport threading\nimport copy\nimport traceback\nimport pathlib\nimport MySQLdb\n\nfrom market import Market\nfrom trader.asset import Asset\n\nfrom database.tickdb import TickStorage, TickStreamer\nfrom database.ohlcdb import OhlcStorage, OhlcStreamer\n\nfrom database.database import Database\n\nimport logging\nlogger = logging.getLogger('siis.database')\n\n\nclass MySql(Database):\n    \"\"\"\n    Storage service, mysql implementation.\n    @todo for ohlc storage use a bulk insert !\n    \"\"\"\n    def __init__(self):\n        super().__init__()\n        self._db = None\n\n    def connect(self, config):\n        self._db = MySQLdb.connect(\n            db=config.get('name', \"siis\"),\n            host=config.get('host', \"localhost\"),\n            port=config.get('port', 3306),\n            user=config.get('user', \"siis\"),\n            passwd=config.get('password', \"siis\"),\n            connect_timeout=5)\n\n    def disconnect(self):\n        # postresql db\n        if self._db:\n            self._db.close()\n            self._db = None\n\n    def setup_market_sql(self):\n        cursor = self._db.cursor()\n\n        # market table\n        cursor.execute(\"SHOW TABLES LIKE 'market'\")\n        if len(cursor.fetchall()) > 0:\n            return\n\n        cursor.execute(\"\"\"\n            CREATE TABLE IF NOT EXISTS market(\n                id BIGINT AUTO_INCREMENT PRIMARY KEY,\n                broker_id VARCHAR(255) NOT NULL, market_id VARCHAR(255) NOT NULL, symbol VARCHAR(32) NOT NULL,\n                market_type INTEGER NOT NULL DEFAULT 0, unit_type INTEGER NOT NULL DEFAULT 0, contract_type INTEGER NOT NULL DEFAULT 0,\n                trade_type INTEGER NOT NULL DEFAULT 0, orders INTEGER NOT NULL DEFAULT 0,\n                base VARCHAR(32) NOT NULL, base_display VARCHAR(32) NOT NULL, base_precision VARCHAR(32) NOT NULL,\n                quote VARCHAR(32) NOT NULL, quote_display VARCHAR(32) NOT NULL, quote_precision VARCHAR(32) NOT NULL,\n                expiry VARCHAR(32) NOT NULL, timestamp BIGINT NOT NULL,\n                lot_size VARCHAR(32) NOT NULL, contract_size VARCHAR(32) NOT NULL, base_exchange_rate VARCHAR(32) NOT NULL,\n                value_per_pip VARCHAR(32) NOT NULL, one_pip_means VARCHAR(32) NOT NULL, margin_factor VARCHAR(32) NOT NULL DEFAULT '1.0',\n                min_size VARCHAR(32) NOT NULL, max_size VARCHAR(32) NOT NULL, step_size VARCHAR(32) NOT NULL,\n                min_notional VARCHAR(32) NOT NULL, max_notional VARCHAR(32) NOT NULL, step_notional VARCHAR(32) NOT NULL,\n                min_price VARCHAR(32) NOT NULL, max_price VARCHAR(32) NOT NULL, step_price VARCHAR(32) NOT NULL,\n                maker_fee VARCHAR(32) NOT NULL DEFAULT '0', taker_fee VARCHAR(32) NOT NULL DEFAULT '0',\n                maker_commission VARCHAR(32) NOT NULL DEFAULT '0', taker_commission VARCHAR(32) NOT NULL DEFAULT '0',\n                UNIQUE KEY(broker_id, market_id))\"\"\")\n\n        self._db.commit()\n\n    def setup_userdata_sql(self):\n        cursor = self._db.cursor()\n\n        # asset table\n        cursor.execute(\"SHOW TABLES LIKE 'asset'\")\n        if len(cursor.fetchall()) > 0:\n            return\n\n        cursor.execute(\"\"\"\n            CREATE TABLE IF NOT EXISTS asset(\n                id BIGINT AUTO_INCREMENT PRIMARY KEY,\n                broker_id VARCHAR(255) NOT NULL, asset_id VARCHAR(255) NOT NULL,\n                last_trade_id VARCHAR(32) NOT NULL, timestamp BIGINT NOT NULL, \n                quantity VARCHAR(32) NOT NULL, price VARCHAR(32) NOT NULL, quote_symbol VARCHAR(32) NOT NULL,\n                UNIQUE KEY(broker_id, asset_id))\"\"\")\n\n        # trade table\n        cursor.execute(\"SHOW TABLES LIKE 'user_trade'\")\n        if len(cursor.fetchall()) > 0:\n            return\n\n        cursor.execute(\"\"\"\n            CREATE TABLE IF NOT EXISTS user_trade(\n                id SERIAL PRIMARY KEY,\n                broker_id VARCHAR(255) NOT NULL, market_id VARCHAR(255) NOT NULL, appliance_id VARCHAR(255) NOT NULL,\n                trade_id INTEGER NOT NULL,\n                data TEXT NOT NULL DEFAULT '{}',\n                operations TEXT NOT NULL DEFAULT '{}',\n                UNIQUE KEY(broker_id, market_id, appliance_id, trade_id))\"\"\")\n\n        # trader table\n        cursor.execute(\"SHOW TABLES LIKE 'user_trader'\")\n        if len(cursor.fetchall()) > 0:\n            return\n\n        cursor.execute(\"\"\"\n            CREATE TABLE IF NOT EXISTS user_trader(\n                id SERIAL PRIMARY KEY,\n                broker_id VARCHAR(255) NOT NULL, market_id VARCHAR(255) NOT NULL, appliance_id VARCHAR(255) NOT NULL,\n                activity INTEGER NOT NULL DEFAULT 1,\n                data TEXT NOT NULL DEFAULT '{}',\n                regions TEXT NOT NULL DEFAULT '{}',\n                UNIQUE KEY(broker_id, market_id, appliance_id))\"\"\")\n\n        self._db.commit()\n\n    def setup_ohlc_sql(self):\n        cursor = self._db.cursor()\n\n        # ohlc table\n        cursor.execute(\"SHOW TABLES LIKE 'ohlc'\")\n        if len(cursor.fetchall()) > 0:\n            return\n\n        cursor.execute(\"\"\"\n            CREATE TABLE IF NOT EXISTS ohlc(\n                id BIGINT AUTO_INCREMENT PRIMARY KEY,\n                broker_id VARCHAR(255) NOT NULL, market_id VARCHAR(255) NOT NULL,\n                timestamp BIGINT NOT NULL, timeframe INTEGER NOT NULL,\n                bid_open VARCHAR(32) NOT NULL, bid_high VARCHAR(32) NOT NULL, bid_low VARCHAR(32) NOT NULL, bid_close VARCHAR(32) NOT NULL,\n                ask_open VARCHAR(32) NOT NULL, ask_high VARCHAR(32) NOT NULL, ask_low VARCHAR(32) NOT NULL, ask_close VARCHAR(32) NOT NULL,\n                volume VARCHAR(48) NOT NULL,\n                UNIQUE KEY(broker_id, market_id, timestamp, timeframe))\"\"\")\n\n        self._db.commit()\n\n    def create_ohlc_streamer(self, broker_id, market_id, timeframe, from_date, to_date, buffer_size=8192):\n        \"\"\"\n        Create a new ohlc streamer.\n        \"\"\"\n        return OhlcStreamer(self._db, timeframe, broker_id, market_id, from_date, to_date, buffer_size)\n\n    #\n    # Processing\n    #\n\n    def process_market(self):\n        #\n        # insert market info\n        #\n\n        self.lock()\n        mki = self._pending_market_info_insert\n        self._pending_market_info_insert = []\n        self.unlock()\n\n        if mki:\n            try:\n                cursor = self._db.cursor()\n\n                for mi in mki:\n                    if mi[16] is None:\n                        # margin factor is unavailable when market is down, so use previous value if available\n                        cursor.execute(\"\"\"SELECT margin_factor FROM market WHERE broker_id = '%s' AND market_id = '%s'\"\"\" % (mi[0], mi[1]))\n                        row = cursor.fetchone()\n\n                        if row:\n                            # replace by previous margin factor from the DB\n                            margin_factor = row[0]\n                            mi = list(mi)\n                            mi[16] = margin_factor\n\n                    cursor.execute(\"\"\"INSERT INTO market(broker_id, market_id, symbol,\n                                        market_type, unit_type, contract_type,\n                                        trade_type, orders,\n                                        base, base_display, base_precision,\n                                        quote, quote_display, quote_precision,\n                                        expiry, timestamp,\n                                        lot_size, contract_size, base_exchange_rate,\n                                        value_per_pip, one_pip_means, margin_factor,\n                                        min_size, max_size, step_size,\n                                        min_notional, max_notional, step_notional,\n                                        min_price, max_price, step_price,\n                                        maker_fee, taker_fee, maker_commission, taker_commission) \n                                    VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)\n                                    ON DUPLICATE KEY UPDATE symbol = %s,\n                                        market_type = %s, unit_type = %s, contract_type = %s,\n                                        trade_type = %s, orders = %s,\n                                        base = %s, base_display = %s, base_precision = %s,\n                                        quote = %s, quote_display = %s, quote_precision = %s,\n                                        expiry = %s, timestamp = %s,\n                                        lot_size = %s, contract_size = %s, base_exchange_rate = %s,\n                                        value_per_pip = %s, one_pip_means = %s, margin_factor = %s,\n                                        min_size = %s, max_size = %s, step_size = %s,\n                                        min_notional = %s, max_notional = %s, step_notional = %s,\n                                        min_price = %s, max_price = %s, step_price = %s,\n                                        maker_fee = %s, taker_fee = %s, maker_commission = %s, taker_commission = %s\"\"\",\n                                    (*mi, *mi[2:]))\n\n                self._db.commit()\n            except Exception as e:\n                logger.error(repr(e))\n\n                # retry the next time\n                self.lock()\n                self._pending_market_info_insert = mki + self._pending_market_info_insert\n                self.unlock()\n\n        #\n        # select market info\n        #\n\n        self.lock()\n        mis = self._pending_market_info_select\n        self._pending_market_info_select = []\n        self.unlock()\n\n        if mis:\n            try:\n                cursor = self._db.cursor()\n\n                for mi in mis:\n                    cursor.execute(\"\"\"SELECT symbol,\n                                        market_type, unit_type, contract_type,\n                                        trade_type, orders,\n                                        base, base_display, base_precision,\n                                        quote, quote_display, quote_precision,\n                                        expiry, timestamp,\n                                        lot_size, contract_size, base_exchange_rate,\n                                        value_per_pip, one_pip_means, margin_factor,\n                                        min_size, max_size, step_size,\n                                        min_notional, max_notional, step_notional,\n                                        min_price, max_price, step_price,\n                                        maker_fee, taker_fee, maker_commission, taker_commission FROM market\n                                    WHERE broker_id = '%s' AND market_id = '%s'\"\"\" % (\n                                        mi[1], mi[2]))\n\n                    row = cursor.fetchone()\n\n                    if row:\n                        market_info = Market(mi[2], row[0])\n\n                        market_info.is_open = True\n\n                        market_info.market_type = row[1]\n                        market_info.unit_type = row[2]\n                        market_info.contract_type = row[3]\n\n                        market_info.trade = row[4]\n                        market_info.orders = row[5]\n\n                        market_info.set_base(row[6], row[7], int(row[8]))\n                        market_info.set_quote(row[9], row[10], int(row[11]))\n\n                        market_info.expiry = row[12]\n                        market_info.last_update_time = row[13]\n\n                        market_info.lot_size = float(row[14])\n                        market_info.contract_size = float(row[15])\n                        market_info.base_exchange_rate = float(row[16])\n                        market_info.value_per_pip = float(row[17])\n                        market_info.one_pip_means = float(row[18])\n\n                        if row[19] is not None or row[19] is not 'None':\n                            if row[19] == '-':  # not defined mean 1.0 or no margin\n                                market_info.margin_factor = 1.0\n                            else:\n                                market_info.margin_factor = float(row[19])\n\n                        market_info.set_size_limits(float(row[20]), float(row[21]), float(row[22]))\n                        market_info.set_notional_limits(float(row[23]), float(row[24]), float(row[25]))\n                        market_info.set_price_limits(float(row[26]), float(row[27]), float(row[28]))\n\n                        market_info.maker_fee = float(row[29])\n                        market_info.taker_fee = float(row[30])\n\n                        market_info.maker_commission = float(row[31])\n                        market_info.taker_commission = float(row[32])\n                    else:\n                        market_info = None\n\n                    # notify\n                    mi[0].notify(Signal.SIGNAL_MARKET_INFO_DATA, mi[1], (mi[2], market_info))\n            except Exception as e:\n                logger.error(repr(e))\n\n                # retry the next time\n                self.lock()\n                self._pending_market_info_select = mis + self._pending_market_info_select\n                self.unlock()\n\n        #\n        # select market list\n        #\n\n        self.lock()\n        mls = self._pending_market_list_select\n        self._pending_market_list_select = []\n        self.unlock()\n\n        if mls:\n            try:\n                cursor = self._db.cursor()\n\n                for m in mls:\n                    cursor.execute(\"\"\"SELECT market_id, symbol, base, quote FROM market WHERE broker_id = '%s'\"\"\" % (m[1],))\n\n                    rows = cursor.fetchall()\n\n                    market_list = []\n\n                    for row in rows:\n                        market_list.append(row)\n\n                    # notify\n                    m[0].notify(Signal.SIGNAL_MARKET_LIST_DATA, m[1], market_list)\n            except Exception as e:\n                logger.error(repr(e))\n\n                # retry the next time\n                self.lock()\n                self._pending_market_list_select = mls + self._pending_market_list_select\n                self.unlock()\n\n    def process_userdata(self):\n        #\n        # inset asset\n        #\n        self.lock()\n        uai = self._pending_asset_insert\n        self._pending_asset_insert = []\n        self.unlock()\n\n        if uai:\n            try:\n                cursor = self._db.cursor()\n\n                for ua in uai:\n                    cursor.execute(\"\"\"\n                        INSERT INTO asset(broker_id, asset_id, last_trade_id, timestamp, quantity, price, quote_symbol)\n                            VALUES(%s, %s, %s, %s, %s, %s, %s)\n                        ON DUPLICATE KEY UPDATE \n                            last_trade_id = %s, timestamp = %s, quantity = %s, price = %s, quote_symbol = %s\"\"\", (*ua, *ua[2:]))\n\n                self._db.commit()\n            except Exception as e:\n                logger.error(repr(e))\n\n                # retry the next time\n                self.lock()\n                self._pending_asset_insert = uai + self._pending_asset_insert\n                self.unlock()\n\n        #\n        # select asset\n        #\n\n        self.lock()\n        uas = self._pending_asset_select\n        self._pending_asset_select = []\n        self.unlock()\n\n        if uas:\n            try:\n                cursor = self._db.cursor()\n\n                for ua in uas:\n                    cursor.execute(\"\"\"SELECT asset_id, last_trade_id, timestamp, quantity, price, quote_symbol FROM asset WHERE broker_id = '%s'\"\"\" % (ua[2]))\n\n                    rows = cursor.fetchall()\n\n                    assets = []\n\n                    for row in rows:\n                        asset = Asset(ua[1], row[0])\n\n                        # only a sync will tell which quantity is free, which one is locked\n                        asset.update_price(float(row[2]) * 0.001, row[1], float(row[4]), row[5])\n                        asset.set_quantity(0.0, float(row[3]))\n\n                        assets.append(asset)\n\n                    # notify\n                    ua[0].notify(Signal.SIGNAL_ASSET_DATA_BULK, ua[2], assets)\n            except Exception as e:\n                # check database for valid ohlc and volumes\n                logger.error(repr(e))\n\n                # retry the next time\n                self.lock()\n                self._pending_asset_select = uas + self._pending_asset_select\n                self.unlock()\n\n        #\n        # insert user_trade\n        #\n        \n        self.lock()\n        uti = self._pending_user_trade_insert\n        self._pending_user_trade_insert = []\n        self.unlock()\n\n        if uti:\n            try:\n                cursor = self._db.cursor()\n\n                query = ' '.join((\n                    \"INSERT INTO user_trade(broker_id, market_id, appliance_id, trade_id, trade_type, data, operations) VALUES\",\n                    ','.join([\"('%s', '%s', %s, %i, %i, '%s', '%s')\" % (ut[0], ut[1], ut[2], ut[3], ut[4],\n                        str(ut[5]).replace(\"'\", \"\\'\"), str(ut[6]).replace(\"'\", \"\\'\")) for ut in uti]),\n                    \"ON DUPLICATE KEY UPDATE data = VALUES(data), operations = VALUES(operations)\"\n                ))\n\n                cursor.execute(query)\n\n                self._db.commit()\n            except Exception as e:\n                logger.error(repr(e))\n\n                # retry the next time\n                self.lock()\n                self._pending_user_trade_insert = uti + self._pending_user_trade_insert\n                self.unlock()\n\n        #\n        # select user_trade\n        #\n\n        self.lock()\n        uts = self._pending_user_trade_select\n        self._pending_user_trade_select = []\n        self.unlock()\n\n        if uts:\n            try:\n                cursor = self._db.cursor()\n\n                for ut in uts:\n                    cursor.execute(\"\"\"SELECT trade_id, trade_type, data, operations FROM user_trade WHERE\n                        appliance_id = '%s' AND broker_id = '%s' AND market_id = '%s'\"\"\" % (ut[2], ut[3], ut[4]))\n\n                    rows = cursor.fetchall()\n\n                    user_trades = []\n\n                    for row in rows:\n                        user_trades.append((row[0], row[1], json.loads(row[2]), json.loads(row[3])))\n\n                    # notify\n                    ut[0].notify(Signal.SIGNAL_STRATEGY_TRADE_LIST, ut[2], user_trades)\n            except Exception as e:\n                # check database for valid ohlc and volumes\n                logger.error(repr(e))\n\n                # retry the next time\n                self.lock()\n                self._pending_user_trade_select = uts + self._pending_user_trade_select\n                self.unlock()\n\n        #\n        # insert trader\n        #\n\n        self.lock()\n        uti = self._pending_user_trader_insert\n        self._pending_user_trader_insert = []\n        self.unlock()\n\n        if uti:\n            try:\n                cursor = self._db.cursor()\n\n                query = ' '.join((\n                    \"INSERT INTO user_trader(broker_id, market_id, appliance_id, activity, data, regions) VALUES\",\n                    ','.join([\"('%s', '%s', '%s', %i, '%s', '%s')\" % (ut[0], ut[1], ut[2], 1 if ut[3] else 0,\n                            str(ut[4]).replace(\"'\", \"\\'\"), str(ut[5]).replace(\"'\", \"\\'\")) for ut in uti]),\n                    \"ON DUPLICATE KEY UPDATE activity = VALUES(activity), data = VALUES(data), regions = VALUES(regions)\"\n                ))\n\n                cursor.execute(query)\n\n                self._db.commit()\n            except Exception as e:\n                logger.error(repr(e))\n\n                # retry the next time\n                self.lock()\n                self._pending_user_trader_insert = uti + self._pending_user_trader_insert\n                self.unlock()\n\n        #\n        # select trader\n        #\n\n        self.lock()\n        uts = self._pending_user_trader_select\n        self._pending_user_trader_select = []\n        self.unlock()\n\n        if uts:\n            try:\n                cursor = self._db.cursor()\n\n                for ut in uts:\n                    cursor.execute(\"\"\"SELECT activity, data, regions FROM user_trader WHERE\n                        appliance_id = '%s' AND broker_id = '%s' AND market_id = '%s'\"\"\" % (ut[2], ut[3], ut[4]))\n\n                    rows = cursor.fetchall()\n\n                    user_traders = []\n\n                    for row in rows:\n                        user_traders.append((row[0], row[1], activity, json.loads(row[2]), json.loads(row[3])))\n\n                    # notify\n                    ut[0].notify(Signal.SIGNAL_STRATEGY_TRADER_DATA, ut[2], user_traders)\n            except Exception as e:\n                # check database for valid ohlc and volumes\n                logger.error(repr(e))\n\n                # retry the next time\n                self.lock()\n                self._pending_user_trade_select = uts + self._pending_user_trade_select\n                self.unlock()\n\n    def process_ohlc(self):       \n        #\n        # select market ohlcs\n        #\n\n        self.lock()\n        mks = copy.copy(self._pending_ohlc_select)\n        self._pending_ohlc_select.clear()\n        self.unlock()\n\n        try:\n            cursor = self._db.cursor()\n\n            for mk in mks:\n                if mk[6]:\n                    # last n\n                    cursor.execute(\"\"\"SELECT COUNT(*) FROM ohlc WHERE broker_id = '%s' AND market_id = '%s' AND timeframe = %s\"\"\" % (mk[1], mk[2], mk[3]))\n                    count = int(cursor.fetchone()[0])\n                    offset = max(0, count - mk[6])\n\n                    # LIMIT should not be necessary then\n                    cursor.execute(\"\"\"SELECT timestamp, bid_open, bid_high, bid_low, bid_close, ask_open, ask_high, ask_low, ask_close, volume FROM ohlc\n                                    WHERE broker_id = '%s' AND market_id = '%s' AND timeframe = %s ORDER BY timestamp ASC LIMIT %i OFFSET %i\"\"\" % (\n                                        mk[1], mk[2], mk[3], mk[6], offset))\n                elif mk[4] and mk[5]:\n                    # from to\n                    cursor.execute(\"\"\"SELECT timestamp, bid_open, bid_high, bid_low, bid_close, ask_open, ask_high, ask_low, ask_close, volume FROM ohlc\n                                    WHERE broker_id = '%s' AND market_id = '%s' AND timeframe = %s AND timestamp >= %i AND timestamp <= %i ORDER BY timestamp ASC\"\"\" % (\n                                        mk[1], mk[2], mk[3], mk[4], mk[5]))\n                elif mk[4]:\n                    # from to now\n                    cursor.execute(\"\"\"SELECT timestamp, bid_open, bid_high, bid_low, bid_close, ask_open, ask_high, ask_low, ask_close, volume FROM ohlc\n                                    WHERE broker_id = '%s' AND market_id = '%s' AND timeframe = %s AND timestamp >= %i ORDER BY timestamp ASC\"\"\" % (\n                                        mk[1], mk[2], mk[3], mk[4]))\n                elif mk[5]:\n                    # to now\n                    cursor.execute(\"\"\"SELECT timestamp, bid_open, bid_high, bid_low, bid_close, ask_open, ask_high, ask_low, ask_close, volume FROM ohlc\n                                    WHERE broker_id = '%s' AND market_id = '%s' AND timeframe = %s AND timestamp <= %i ORDER BY timestamp ASC\"\"\" % (\n                                        mk[1], mk[2], mk[3], mk[5]))\n                else:\n                    # all\n                    cursor.execute(\"\"\"SELECT timestamp, bid_open, bid_high, bid_low, bid_close, ask_open, ask_high, ask_low, ask_close, volume FROM ohlc\n                                    WHERE broker_id = '%s' AND market_id = '%s' AND timeframe = %s ORDER BY timestamp ASC\"\"\" % (\n                                        mk[1], mk[2], mk[3]))\n\n                rows = cursor.fetchall()\n\n                ohlcs = []\n\n                for row in rows:\n                    timestamp = float(row[0]) / 1000.0  # to float second timestamp\n                    ohlc = Candle(timestamp, mk[3])\n\n                    ohlc.set_bid_ohlc(float(row[1]), float(row[2]), float(row[3]), float(row[4]))\n                    ohlc.set_ofr_ohlc(float(row[5]), float(row[6]), float(row[7]), float(row[8]))\n\n                    # if float(row[9]) <= 0:\n                    #   # prefer to ignore empty volume ohlc because it can broke volume signal and it is a no way but it could be\n                    #   # a lack of this information like on SPX500 of ig.com. So how to manage that cases...\n                    #   continue\n\n                    ohlc.set_volume(float(row[9]))\n\n                    ohlcs.append(ohlc)\n\n                # notify\n                mk[0].notify(Signal.SIGNAL_CANDLE_DATA_BULK, mk[1], (mk[2], mk[3], ohlcs))\n        except Exception as e:\n            # check database for valide ohlc and volumes\n            logger.error(repr(e))\n\n            # retry the next time\n            self.lock()\n            self._pending_ohlc_select = mks + self._pending_ohlc_select\n            self.unlock()\n\n        #\n        # insert market ohlcs\n        #\n\n        if time.time() - self._last_ohlc_flush >= 60 or len(self._pending_ohlc_insert) > 500:\n            self.lock()\n            mkd = self._pending_ohlc_insert\n            self._pending_ohlc_insert = []\n            self.unlock()\n\n            if mkd:\n                try:\n                    cursor = self._db.cursor()\n\n                    query = ' '.join((\n                        \"INSERT INTO ohlc(broker_id, market_id, timestamp, timeframe, bid_open, bid_high, bid_low, bid_close, ask_open, ask_high, ask_low, ask_close, volume) VALUES\",\n                        ','.join([\"('%s', '%s', %i, %i, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')\" % (mk[0], mk[1], mk[2], mk[3], mk[4], mk[5], mk[6], mk[7], mk[8], mk[9], mk[10], mk[11], mk[12]) for mk in mkd]),\n                        \"ON DUPLICATE KEY UPDATE bid_open = VALUES(bid_open), bid_high = VALUES(bid_high), bid_low = VALUES(bid_low), bid_close = VALUES(bid_close), ask_open = VALUES(ask_open), ask_high = VALUES(ask_high), ask_low = VALUES(ask_low), ask_close = VALUES(ask_close), volume = VALUES(volume)\"\n                    ))\n\n                    cursor.execute(query)\n\n                    self._db.commit()\n                except Exception as e:\n                    logger.error(repr(e))\n\n                    # retry the next time\n                    self.lock()\n                    self._pending_ohlc_insert = mkd + self._pending_ohlc_insert\n                    self.unlock()\n\n                self._last_ohlc_flush = time.time()\n\n        #\n        # clean older ohlcs\n        #\n\n        if time.time() - self._last_ohlc_clean >= OhlcStorage.CLEANUP_DELAY:\n            try:\n                now = time.time()\n                cursor = self._db.cursor()\n\n                for timeframe, timestamp in OhlcStorage.CLEANERS:\n                    ts = int(now - timestamp) * 1000\n                    # @todo make a count before\n                    cursor.execute(\"DELETE FROM ohlc WHERE timeframe <= %i AND timestamp < %i\" % (timeframe, ts))\n\n                self._db.commit()\n            except Exception as e:\n                logger.error(repr(e))\n\n            self._last_ohlc_clean = time.time()\n",
-			"file": "connectors/database/mysql.py",
-			"file_size": 27432,
-			"file_write_time": 132067142832866351,
-			"settings":
-			{
-				"buffer_size": 27440,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "connectors/connectors/ig/trader.py",
 			"settings":
 			{
@@ -567,10 +537,10 @@
 			}
 		},
 		{
-			"file": "connectors/connectorserver.py",
+			"file": "connectors/main.py",
 			"settings":
 			{
-				"buffer_size": 11664,
+				"buffer_size": 15488,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -668,34 +638,41 @@
 	"expanded_folders":
 	[
 		"/home/frederic/dev/trading/siis-rev",
-		"/home/frederic/dev/trading/siis-rev/connectors",
-		"/home/frederic/dev/trading/siis-rev/connectors/connectors",
-		"/home/frederic/dev/trading/siis-rev/connectors/connectors/ig",
-		"/home/frederic/dev/trading/siis-rev/strategies",
-		"/home/frederic/dev/trading/siis-rev/strategies/config",
-		"/home/frederic/dev/trading/siis-rev/strategies/include",
-		"/home/frederic/dev/trading/siis-rev/strategies/include/siis"
+		"/home/frederic/dev/trading/siis-rev/connectors"
 	],
 	"file_history":
 	[
-		"/home/frederic/dev/trading/siis-rev/connectors/connectors/ig/connector.py",
-		"/home/frederic/dev/trading/siis-rev/connectors/database/database.py",
-		"/home/frederic/dev/trading/siis-rev/connectors/connector.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/database/pgsql.py",
+		"/home/frederic/test.py",
+		"/home/frederic/dl/dlfromhistdatacom.py",
+		"/home/frederic/prime.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/database/mysql.py",
+		"/home/frederic/dev/trading/siis-rev/connectors/common/siislog.py",
+		"/home/frederic/dev/trading/siis-rev/connectors/connectors/ig/utils.py",
+		"/home/frederic/dev/trading/siis-rev/connectors/connectors/ig/stream.py",
+		"/home/frederic/dev/trading/siis-rev/connectors/defaulthandler.py",
+		"/home/frederic/dev/trading/siis-rev/connectors/connectors/ig/lightstreamer.py",
+		"/home/frederic/dev/trading/siis-rev/scripts/install.py",
+		"/home/frederic/dev/trading/siis-rev/connectors/common/utils.py",
+		"/home/frederic/dev/trading/siis-rev/connectors/strategyclient.py",
+		"/home/frederic/dev/trading/siis-rev/connectors/main.py",
+		"/home/frederic/dev/trading/siis-rev/connectors/connectorserver.py",
+		"/home/frederic/dev/trading/siis-rev/connectors/connector.py",
+		"/home/frederic/dev/trading/siis-rev/connectors/connectors/ig/connector.py",
+		"/home/frederic/dev/trading/siis-rev/connectors/database/tickdb.py",
+		"/home/frederic/dev/trading/siis-rev/connectors/database/ohlcdb.py",
+		"/home/frederic/dev/trading/siis-rev/connectors/market.py",
+		"/home/frederic/dev/trading/siis-rev/sql/initpg.sql",
+		"/home/frederic/dev/trading/siis-rev/sql/initmy.sql",
+		"/home/frederic/dev/trading/siis-rev/connectors/database/database.py",
 		"/home/frederic/dev/trading/siis-rev/strategies/src/config/strategyconfig.cpp",
 		"/home/frederic/dev/trading/siis-rev/strategies/src/strategies/forexalpha/faparameters.h",
 		"/home/frederic/dev/trading/siis-rev/strategies/src/strategy.cpp",
-		"/home/frederic/dev/trading/siis-rev/sql/initpg.sql",
-		"/home/frederic/dev/trading/siis-rev/sql/initmy.sql",
 		"/home/frederic/.siis/config/appliance.py",
-		"/home/frederic/dev/trading/siis-rev/connectors/market.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/connectors/bitfinex/__init__.py",
 		"/home/frederic/dev/trading/siis-rev/strategies/include/siis/market.h",
 		"/home/frederic/dev/trading/siis-rev/connectors/handler.py",
 		"/home/frederic/dev/trading/siis-rev/strategies/config/strategy.json.template",
-		"/home/frederic/dev/trading/siis-rev/connectors/defaulthandler.py",
-		"/home/frederic/dev/trading/siis-rev/connectors/strategyclient.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/messages/messageaccount.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/messages/messageasset.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/messages/messageohlc.py",
@@ -716,14 +693,10 @@
 		"/home/frederic/.siis/config/connectors/bitmexdemo.json",
 		"/home/frederic/.siis/config/connectors/bitmexreal.json",
 		"/home/frederic/.siis/config/connectors/igdemo.json",
-		"/home/frederic/dev/trading/siis-rev/connectors/main.py",
-		"/home/frederic/dev/trading/siis-rev/connectors/connectorserver.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/trader/order.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/connectors/ig/account.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/connectors/ig/trader.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/connectors/ig/rest.py",
-		"/home/frederic/dev/trading/siis-rev/connectors/common/utils.py",
-		"/home/frederic/dev/trading/siis-rev/connectors/connectors/ig/lightstreamer.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/constants.py",
 		"/home/frederic/dev/trading/siis-rev/strategies/src/connector/stdtraderproxy.cpp",
 		"/home/frederic/dev/trading/siis-rev/strategies.old/include/siis/connector/stdtraderproxy.h",
@@ -733,15 +706,12 @@
 		"/home/frederic/dev/trading/siis-rev/connectors/trader/paper.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/trader/position.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/trader/trader.py",
-		"/home/frederic/dev/trading/siis-rev/connectors/connectors/ig/utils.py",
 		"/home/frederic/dev/trading/siis-rev/strategies/include/siis/constants.h",
 		"/home/frederic/dev/trading/siis-rev/connectors/connectors/ig/__init__.py",
 		"/home/frederic/.siis/config/connector.json",
 		"/home/frederic/dev/trading/siis-rev/connectors/server.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/__init__.py",
-		"/home/frederic/dev/trading/siis-rev/connectors/common/siislog.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/config/connector.json.template",
-		"/home/frederic/dev/trading/siis-rev/connectors/database/ohlcdb.py",
 		"/home/frederic/doc/trading/siis.sublime-project",
 		"/home/frederic/.siis/config/strategy.json",
 		"/home/frederic/.siis/config/strategies/ethusdt1.json",
@@ -799,13 +769,7 @@
 		"/home/frederic/dev/trading/siis/monitor/service.py",
 		"/home/frederic/.siis/config/config.py",
 		"/home/frederic/dev/trading/siis/config/config.py",
-		"/home/frederic/dev/trading/siis/common/service.py",
-		"/home/frederic/dev/trading/siis/strategy/cryptoalpha/casuba.py",
-		"/home/frederic/dev/trading/siis/strategy/indicator/rsi/rsi.py",
-		"/home/frederic/dev/trading/siis/common/utils.py",
-		"/home/frederic/dev/trading/instr.txt",
-		"/home/frederic/dev/trading/bmaccount.txt",
-		"/home/frederic/dev/trading/siis/trader/position.py"
+		"/home/frederic/dev/trading/siis/common/service.py"
 	],
 	"find":
 	{
@@ -825,6 +789,37 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"''",
+			"\\'",
+			"str(",
+			"siis_lo",
+			"ugpra",
+			"getLogger",
+			"logger.",
+			"log.",
+			"l",
+			"log.",
+			"print(",
+			"workder",
+			"_workder_id",
+			"Strategy worker started",
+			"/ 1000",
+			"/ 1000.0",
+			"CLEANUP",
+			"logger = logging.getLogger",
+			"siis.conn",
+			"siis.connector",
+			"'connector'",
+			"trade_type",
+			"user_tra",
+			"user_tr",
+			"load_user",
+			"datetime",
+			"self._mode",
+			".last_updat",
+			"load_assets",
+			"store_",
+			"store_user",
 			"str(",
 			"EXCLUDED",
 			"SIGNAL_",
@@ -921,38 +916,7 @@
 			"Instrument",
 			"update_time",
 			"self.service.notify",
-			"update_time",
-			"_on_tick_update",
-			"IGWatcher",
-			"Subscri",
-			"Subsc",
-			"Watcher",
-			"_close_only",
-			"_reduce_only",
-			"_last_ohlc",
-			"TF_MAP",
-			"initial_subscriptions",
-			"initial_fetch",
-			".initial_fet",
-			"initial_fet",
-			"_account_id",
-			"def account_id",
-			".on_",
-			"on_trade",
-			"subscribe_tick(",
-			"_subscriptions",
-			"Database",
-			"STORED_TIMEFRAMES",
-			"def unsubscribe(self, market_id):",
-			"ig_unsub",
-			"ig_subscribe",
-			"_previous",
-			"_subscriptions",
-			"insert_watched_",
-			"_subscriptions",
-			"unsubs",
-			"_lightstreamer",
-			"_cached_tick"
+			"update_time"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -974,7 +938,7 @@
 	"groups":
 	[
 		{
-			"selected": 3,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -990,8 +954,8 @@
 						"selection":
 						[
 							[
-								3937,
-								3937
+								2977,
+								2977
 							]
 						],
 						"settings":
@@ -1001,104 +965,14 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1372.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "connectors/database/database.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 15140,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								14466,
-								14466
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 5811.0,
+						"translation.y": 1356.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 2,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "connectors/database/pgsql.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 27354,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								19950,
-								19950
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 6910.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "connectors/database/mysql.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 27440,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								16537,
-								16537
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 5710.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 4,
+					"buffer": 1,
 					"file": "connectors/connectors/ig/trader.py",
 					"semi_transient": false,
 					"settings":
@@ -1110,8 +984,8 @@
 						"selection":
 						[
 							[
-								1379,
-								1379
+								4687,
+								4687
 							]
 						],
 						"settings":
@@ -1121,27 +995,27 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2181.0,
+						"translation.y": 2032.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
-					"buffer": 5,
-					"file": "connectors/connectorserver.py",
+					"buffer": 2,
+					"file": "connectors/main.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 11664,
+						"buffer_size": 15488,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								11664,
-								11664
+								14084,
+								14084
 							]
 						],
 						"settings":
@@ -1151,14 +1025,14 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 4567.0,
+						"translation.y": 5407.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
-					"buffer": 6,
+					"buffer": 3,
 					"file": "/home/frederic/.siis/config/connectors/igdemo.json",
 					"semi_transient": false,
 					"settings":
@@ -1184,11 +1058,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 6,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
-					"buffer": 7,
+					"buffer": 4,
 					"file": "connectors/trader/trader.py",
 					"semi_transient": false,
 					"settings":
@@ -1214,7 +1088,7 @@
 						"translation.y": 2976.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 7,
+					"stack_index": 4,
 					"type": "text"
 				}
 			]
@@ -1273,24 +1147,100 @@
 		"selected_items":
 		[
 			[
-				"my",
-				"connectors/database/mysql.py"
+				"pgs",
+				"connectors/database/pgsql.py"
 			],
 			[
-				"data",
-				"connectors/database/database.py"
+				"mys",
+				"connectors/database/mysql.py"
 			],
 			[
 				"pg",
 				"connectors/database/pgsql.py"
 			],
 			[
+				"my",
+				"connectors/database/mysql.py"
+			],
+			[
+				"siislo",
+				"connectors/common/siislog.py"
+			],
+			[
+				"main",
+				"connectors/main.py"
+			],
+			[
+				"siis",
+				"connectors/common/siislog.py"
+			],
+			[
+				"lig",
+				"connectors/connectors/ig/lightstreamer.py"
+			],
+			[
+				"siisl",
+				"connectors/common/siislog.py"
+			],
+			[
+				"connectorserver",
+				"connectors/connectorserver.py"
+			],
+			[
+				"tick",
+				"connectors/database/tickdb.py"
+			],
+			[
+				"connector",
+				"connectors/connectors/ig/connector.py"
+			],
+			[
+				"ohl",
+				"connectors/database/ohlcdb.py"
+			],
+			[
+				"ma",
+				"connectors/market.py"
+			],
+			[
+				"conne",
+				"connectors/connectors/ig/connector.py"
+			],
+			[
+				"mar",
+				"connectors/market.py"
+			],
+			[
+				"connect",
+				"connectors/connector.py"
+			],
+			[
+				"init",
+				"sql/initpg.sql"
+			],
+			[
+				"mysl",
+				"connectors/database/mysql.py"
+			],
+			[
+				"mysql",
+				"connectors/database/mysql.py"
+			],
+			[
 				"dat",
 				"connectors/database/database.py"
 			],
 			[
-				"mys",
-				"connectors/database/mysql.py"
+				"util",
+				"connectors/common/utils.py"
+			],
+			[
+				"ini",
+				"sql/initmy.sql"
+			],
+			[
+				"data",
+				"connectors/database/database.py"
 			],
 			[
 				"param",
@@ -1303,10 +1253,6 @@
 			[
 				"strate",
 				"strategies/src/config/strategyconfig.cpp"
-			],
-			[
-				"init",
-				"sql/initpg.sql"
 			],
 			[
 				"initm",
@@ -1329,10 +1275,6 @@
 				"connectors/market.py"
 			],
 			[
-				"mar",
-				"connectors/market.py"
-			],
-			[
 				"market",
 				"connectors/market.py"
 			],
@@ -1343,14 +1285,6 @@
 			[
 				"",
 				"connectors/connectors/ig/trader.py"
-			],
-			[
-				"pgs",
-				"connectors/database/pgsql.py"
-			],
-			[
-				"mysql",
-				"connectors/database/mysql.py"
 			],
 			[
 				".sq",
@@ -1369,16 +1303,8 @@
 				"connectors/connectorserver.py"
 			],
 			[
-				"main",
-				"connectors/main.py"
-			],
-			[
 				"defa",
 				"connectors/defaulthandler.py"
-			],
-			[
-				"conne",
-				"connectors/connector.py"
 			],
 			[
 				"trader",
@@ -1401,10 +1327,6 @@
 				"connectors/connectors/ig/account.py"
 			],
 			[
-				"util",
-				"connectors/common/utils.py"
-			],
-			[
 				"ligh",
 				"connectors/connectors/ig/lightstreamer.py"
 			],
@@ -1415,10 +1337,6 @@
 			[
 				"const",
 				"connectors/constants.py"
-			],
-			[
-				"connector",
-				"connectors/connectorserver.py"
 			],
 			[
 				"stdtra",
@@ -1491,10 +1409,6 @@
 			[
 				"han",
 				"connectors/handler.py"
-			],
-			[
-				"siislo",
-				"connectors/common/siislog.py"
 			],
 			[
 				"templ",
@@ -1743,46 +1657,6 @@
 			[
 				"fara",
 				"strategy/forexalpha/faparameters.py"
-			],
-			[
-				"utils",
-				"common/utils.py"
-			],
-			[
-				"watcher",
-				"watcher/connector/bitmex/watcher.py"
-			],
-			[
-				"tradr",
-				"trader/connector/bitmex/trader.py"
-			],
-			[
-				"ysign",
-				"strategy/strategysignal.py"
-			],
-			[
-				"signal",
-				"strategy/strategysignal.py"
-			],
-			[
-				"ytrade",
-				"strategy/strategytrade.py"
-			],
-			[
-				"trade",
-				"trader/trader.py"
-			],
-			[
-				"wa",
-				"watcher/connector/bitmex/watcher.py"
-			],
-			[
-				"fore",
-				"strategy/forexalpha/fastrategytrader.py"
-			],
-			[
-				"ass",
-				"trader/asset.py"
 			]
 		],
 		"width": 0.0
@@ -1793,6 +1667,10 @@
 		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"",
+				"~/dev/trading/siis/siis.sublime-project"
+			]
 		],
 		"width": 380.0
 	},
