@@ -4,6 +4,38 @@
 		"selected_items":
 		[
 			[
+				"m_las",
+				"m_lastFama"
+			],
+			[
+				"m_",
+				"m_mama"
+			],
+			[
+				"m_pre",
+				"m_prevFama"
+			],
+			[
+				"aw",
+				"awesomeSlow_Len"
+			],
+			[
+				"m_fa",
+				"m_awesomeFast_Len"
+			],
+			[
+				"awe",
+				"awesomeSlow_Len"
+			],
+			[
+				"m_aw",
+				"m_awesomeSlow_Len"
+			],
+			[
+				"m_b",
+				"m_baseMultiplier"
+			],
+			[
 				"con",
 				"conn_file_logger"
 			],
@@ -482,38 +514,6 @@
 			[
 				"TF",
 				"TF_FIFTEEN_MIN"
-			],
-			[
-				"ret",
-				"retained_exits"
-			],
-			[
-				"exit",
-				"exits"
-			],
-			[
-				"time",
-				"timeframe"
-			],
-			[
-				"retaine",
-				"retained_entry"
-			],
-			[
-				"_pr",
-				"_prev_agg_cd"
-			],
-			[
-				"e",
-				"eight"
-			],
-			[
-				"_ag",
-				"_agg_cd"
-			],
-			[
-				"vol",
-				"volumes"
 			]
 		]
 	},
@@ -555,11 +555,27 @@
 			}
 		},
 		{
-			"file": "connectors/trader/trader.py",
+			"file": "strategies/include/siis/indicators/mama/mama.h",
 			"settings":
 			{
-				"buffer_size": 18267,
+				"buffer_size": 2061,
 				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "strategies/include/siis/indicators/sinewave/sinewave.h",
+			"settings":
+			{
+				"buffer_size": 1752,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "strategies/src/indicators/sinewave/sinewave.cpp",
+			"settings":
+			{
+				"buffer_size": 1885,
 				"line_ending": "Unix"
 			}
 		}
@@ -638,15 +654,54 @@
 	"expanded_folders":
 	[
 		"/home/frederic/dev/trading/siis-rev",
-		"/home/frederic/dev/trading/siis-rev/connectors"
+		"/home/frederic/dev/trading/siis-rev/connectors",
+		"/home/frederic/dev/trading/siis-rev/connectors/common",
+		"/home/frederic/dev/trading/siis-rev/strategies",
+		"/home/frederic/dev/trading/siis-rev/strategies/include",
+		"/home/frederic/dev/trading/siis-rev/strategies/include/siis",
+		"/home/frederic/dev/trading/siis-rev/strategies/include/siis/indicators",
+		"/home/frederic/dev/trading/siis-rev/strategies/include/siis/indicators/bbawe",
+		"/home/frederic/dev/trading/siis-rev/strategies/include/siis/indicators/mama",
+		"/home/frederic/dev/trading/siis-rev/strategies/include/siis/indicators/mmt",
+		"/home/frederic/dev/trading/siis-rev/strategies/include/siis/indicators/sinewave",
+		"/home/frederic/dev/trading/siis-rev/strategies/include/siis/indicators/zigzag"
 	],
 	"file_history":
 	[
 		"/home/frederic/dev/trading/siis-rev/connectors/database/pgsql.py",
+		"/home/frederic/dev/trading/siis-rev/connectors/database/mysql.py",
+		"/home/frederic/dev/trading/siis-rev/connectors/trader/trader.py",
+		"/home/frederic/dev/trading/siis-rev/sql/initpg.sql",
+		"/home/frederic/dev/trading/siis-rev/sql/initmy.sql",
+		"/home/frederic/dev/trading/siis-rev/connectors/database/database.py",
+		"/home/frederic/dev/trading/siis-rev/strategies/src/indicators/mama/mama.cpp",
+		"/home/frederic/dev/trading/siis-rev/strategies/src/indicators/sinewave/sinewave.cpp",
+		"/home/frederic/dev/trading/siis-rev/strategies/include/siis/indicators/sinewave/sinewave.h",
+		"/home/frederic/dev/trading/siis-rev/strategies/include/siis/indicators/mama/mama.h",
+		"/home/frederic/dev/trading/siis-rev/strategies/src/indicators/bbawe/bbawe.cpp",
+		"/home/frederic/dev/trading/siis-rev/README.md",
+		"/home/frederic/dev/trading/siis-rev/connectors/common/ohlcgen.py",
+		"/home/frederic/dev/trading/siis-rev/connectors/database/tickdb.py",
+		"/home/frederic/dev/trading/siis-rev/strategies/src/utils/ohlcgen.cpp",
+		"/home/frederic/dev/trading/siis-rev/strategies/src/indicators/rsi/rsi.cpp",
+		"/home/frederic/dev/trading/siis-rev/strategies/src/indicators/zigzag/zigzag.cpp",
+		"/home/frederic/dev/trading/siis-rev/strategies/include/siis/indicators/zigzag/zigzag.h",
+		"/home/frederic/dev/trading/siis-rev/strategies/src/indicators/mmt/mmt.cpp",
+		"/home/frederic/dev/trading/siis-rev/strategies/src/indicators/stoch/stoch.cpp",
+		"/home/frederic/dev/trading/siis-rev/strategies/src/indicators/stochrsi/stochrsi.cpp",
+		"/home/frederic/dev/trading/siis-rev/strategies/src/indicators/macd/macd.cpp",
+		"/home/frederic/dev/trading/siis-rev/strategies/src/indicators/wma/wma.cpp",
+		"/home/frederic/dev/trading/siis-rev/strategies/src/indicators/vwma/vwma.cpp",
+		"/home/frederic/dev/trading/siis-rev/strategies/src/indicators/sma/sma.cpp",
+		"/home/frederic/dev/trading/siis-rev/strategies/src/indicators/ema/ema.cpp",
+		"/home/frederic/dev/trading/siis-rev/strategies/include/siis/indicators/bbawe/bbawe.h",
+		"/home/frederic/dev/trading/siis-rev/strategies/src/CMakeLists.txt",
+		"/home/frederic/dev/trading/siis-rev/strategies/include/siis/indicators/rsi/rsi.h",
+		"/home/frederic/dev/trading/siis-rev/strategies/include/siis/indicators/indicator.h",
+		"/home/frederic/dev/trading/siis-rev/connectors/market.py",
 		"/home/frederic/test.py",
 		"/home/frederic/dl/dlfromhistdatacom.py",
 		"/home/frederic/prime.py",
-		"/home/frederic/dev/trading/siis-rev/connectors/database/mysql.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/common/siislog.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/connectors/ig/utils.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/connectors/ig/stream.py",
@@ -659,12 +714,7 @@
 		"/home/frederic/dev/trading/siis-rev/connectors/connectorserver.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/connector.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/connectors/ig/connector.py",
-		"/home/frederic/dev/trading/siis-rev/connectors/database/tickdb.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/database/ohlcdb.py",
-		"/home/frederic/dev/trading/siis-rev/connectors/market.py",
-		"/home/frederic/dev/trading/siis-rev/sql/initpg.sql",
-		"/home/frederic/dev/trading/siis-rev/sql/initmy.sql",
-		"/home/frederic/dev/trading/siis-rev/connectors/database/database.py",
 		"/home/frederic/dev/trading/siis-rev/strategies/src/config/strategyconfig.cpp",
 		"/home/frederic/dev/trading/siis-rev/strategies/src/strategies/forexalpha/faparameters.h",
 		"/home/frederic/dev/trading/siis-rev/strategies/src/strategy.cpp",
@@ -705,7 +755,6 @@
 		"/home/frederic/dev/trading/igmarkets.txt",
 		"/home/frederic/dev/trading/siis-rev/connectors/trader/paper.py",
 		"/home/frederic/dev/trading/siis-rev/connectors/trader/position.py",
-		"/home/frederic/dev/trading/siis-rev/connectors/trader/trader.py",
 		"/home/frederic/dev/trading/siis-rev/strategies/include/siis/constants.h",
 		"/home/frederic/dev/trading/siis-rev/connectors/connectors/ig/__init__.py",
 		"/home/frederic/.siis/config/connector.json",
@@ -746,30 +795,7 @@
 		"/home/frederic/dev/trading/siis/trader/connector/bitmex/trader.py",
 		"/home/frederic/dev/trading/siis/trader/trader.py",
 		"/home/frederic/dev/trading/siis/strategy/strategytrade.py",
-		"/home/frederic/dev/trading/siis/trader/connector/papertrader/trader.py",
-		"/home/frederic/dev/trading/siis/connector/bitmex/connector.py",
-		"/home/frederic/dev/trading/siis/strategy/strategymargintrade.py",
-		"/home/frederic/dev/trading/siis/strategy/timeframebasedstrategytrader.py",
-		"/home/frederic/dev/trading/siis/terminal/terminal.py",
-		"/home/frederic/dev/trading/siis/prefetch-bitmex.sh",
-		"/home/frederic/dev/trading/siis/prefetch-ig.sh",
-		"/home/frederic/dev/trading/siis/connector/binance/client.py",
-		"/home/frederic/dev/trading/siis/strategy/forexalpha/faparameters.py",
-		"/home/frederic/dev/trading/siis/common/workerpool.py",
-		"/home/frederic/dev/trading/siis/prefetch-binance.sh",
-		"/home/frederic/dev/trading/siis/watcher/fetcher.py",
-		"/home/frederic/dev/trading/siis/charting/charting.py",
-		"/home/frederic/dev/trading/siis/strategy/service.py",
-		"/home/frederic/dev/trading/siis/watcher/connector/bitmex/fetcher.py",
-		"/home/frederic/dev/trading/siis/instrument/instrument.py",
-		"/home/frederic/dev/trading/siis/strategy/forexalpha/fasubb.py",
-		"/home/frederic/dev/trading/siis/strategy/forexalpha/fasubc.py",
-		"/home/frederic/dev/trading/siis/strategy/indicator/volume/volume.py",
-		"/home/frederic/dev/trading/siis/strategy/bitcoinalpha/bcasuba.py",
-		"/home/frederic/dev/trading/siis/monitor/service.py",
-		"/home/frederic/.siis/config/config.py",
-		"/home/frederic/dev/trading/siis/config/config.py",
-		"/home/frederic/dev/trading/siis/common/service.py"
+		"/home/frederic/dev/trading/siis/trader/connector/papertrader/trader.py"
 	],
 	"find":
 	{
@@ -789,6 +815,25 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"candle.",
+			"_pending_ohlc_insert",
+			"setup_ohlc_sql",
+			"o3d::Int32 cross",
+			"candle",
+			"_candle",
+			"ended_candle",
+			"to_candles",
+			"from_candle",
+			"update_from_candle",
+			".asBool",
+			".asBool();",
+			".asFloat",
+			".asDouble(",
+			"_leverages",
+			"_leverages\n",
+			"_leverages",
+			"._timeframes",
+			"_timeframes",
 			"''",
 			"\\'",
 			"str(",
@@ -897,26 +942,7 @@
 			"_subscriptions",
 			"update_ohlc",
 			"update_ohlc(",
-			"update_ohlc",
-			"update_from_tick",
-			"update_from",
-			"update_ohlc",
-			".update_ohlc",
-			"update_ohlc",
-			"update_from_tick",
-			"update_ohlc(",
-			"update_ohlc",
-			".update_ohlc",
-			"update_ohlc",
-			"_last_ohlc",
-			"basetime",
-			"_last_ohlc",
-			"basetime",
-			"Instrument.",
-			"Instrument",
-			"update_time",
-			"self.service.notify",
-			"update_time"
+			"update_ohlc"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -924,6 +950,12 @@
 		"regex": false,
 		"replace_history":
 		[
+			"ohlc",
+			"_ohlc",
+			"ended_ohlc",
+			"to_ohlcs",
+			"from_ohlc",
+			"from_ohcl",
 			"func_id",
 			"",
 			"print(",
@@ -938,7 +970,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 3,
 			"sheets":
 			[
 				{
@@ -968,7 +1000,7 @@
 						"translation.y": 1356.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
@@ -984,8 +1016,8 @@
 						"selection":
 						[
 							[
-								4687,
-								4687
+								4481,
+								4481
 							]
 						],
 						"settings":
@@ -998,7 +1030,7 @@
 						"translation.y": 2032.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 5,
 					"type": "text"
 				},
 				{
@@ -1028,7 +1060,7 @@
 						"translation.y": 5407.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 6,
 					"type": "text"
 				},
 				{
@@ -1044,8 +1076,8 @@
 						"selection":
 						[
 							[
-								747,
-								747
+								590,
+								590
 							]
 						],
 						"settings":
@@ -1058,37 +1090,97 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
 					"buffer": 4,
-					"file": "connectors/trader/trader.py",
+					"file": "strategies/include/siis/indicators/mama/mama.h",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 18267,
+						"buffer_size": 2061,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								6916,
-								6916
+								1613,
+								1613
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python/Python.sublime-syntax",
+							"syntax": "Packages/C++/C++.sublime-syntax",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2976.0,
+						"translation.y": 217.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "strategies/include/siis/indicators/sinewave/sinewave.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1752,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1268,
+								1268
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 172.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "strategies/src/indicators/sinewave/sinewave.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1885,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1551,
+								1551
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 232.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
 					"type": "text"
 				}
 			]
@@ -1137,7 +1229,7 @@
 	"project": "siis-rev.sublime-project",
 	"replace":
 	{
-		"height": 78.0
+		"height": 70.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -1147,7 +1239,7 @@
 		"selected_items":
 		[
 			[
-				"pgs",
+				"pg",
 				"connectors/database/pgsql.py"
 			],
 			[
@@ -1155,12 +1247,128 @@
 				"connectors/database/mysql.py"
 			],
 			[
-				"pg",
+				"pgs",
 				"connectors/database/pgsql.py"
 			],
 			[
 				"my",
 				"connectors/database/mysql.py"
+			],
+			[
+				"initp",
+				"sql/initpg.sql"
+			],
+			[
+				"initm",
+				"sql/initmy.sql"
+			],
+			[
+				"dat",
+				"connectors/database/database.py"
+			],
+			[
+				"init",
+				"sql/initmy.sql"
+			],
+			[
+				"sinw",
+				"strategies/src/indicators/sinewave/sinewave.cpp"
+			],
+			[
+				"sine",
+				"strategies/include/siis/indicators/sinewave/sinewave.h"
+			],
+			[
+				"mam",
+				"strategies/include/siis/indicators/mama/mama.h"
+			],
+			[
+				"mama",
+				"strategies/src/indicators/mama/mama.cpp"
+			],
+			[
+				"ohclg",
+				"strategies/src/utils/ohlcgen.cpp"
+			],
+			[
+				"sinew",
+				"strategies/src/indicators/sinewave/sinewave.cpp"
+			],
+			[
+				"rsi",
+				"strategies/src/indicators/rsi/rsi.cpp"
+			],
+			[
+				"sin",
+				"strategies/src/indicators/sinewave/sinewave.cpp"
+			],
+			[
+				"zig",
+				"strategies/include/siis/indicators/zigzag/zigzag.h"
+			],
+			[
+				"mmt",
+				"strategies/src/indicators/mmt/mmt.cpp"
+			],
+			[
+				"stoch",
+				"strategies/src/indicators/stoch/stoch.cpp"
+			],
+			[
+				"stochrs",
+				"strategies/src/indicators/stochrsi/stochrsi.cpp"
+			],
+			[
+				"mac",
+				"strategies/src/indicators/macd/macd.cpp"
+			],
+			[
+				"wma",
+				"strategies/src/indicators/wma/wma.cpp"
+			],
+			[
+				"vwm",
+				"strategies/src/indicators/vwma/vwma.cpp"
+			],
+			[
+				"wv",
+				"strategies/src/indicators/vwma/vwma.cpp"
+			],
+			[
+				"ema",
+				"strategies/src/indicators/ema/ema.cpp"
+			],
+			[
+				"macd",
+				"strategies/src/indicators/macd/macd.cpp"
+			],
+			[
+				"sma",
+				"strategies/src/indicators/sma/sma.cpp"
+			],
+			[
+				"stochr",
+				"strategies/src/indicators/stochrsi/stochrsi.cpp"
+			],
+			[
+				"bbawe",
+				"strategies/src/indicators/bbawe/bbawe.cpp"
+			],
+			[
+				"bbaw",
+				"strategies/src/indicators/bbawe/bbawe.cpp"
+			],
+			[
+				"cma",
+				"strategies/src/CMakeLists.txt"
+			],
+			[
+				"indic",
+				"strategies/include/siis/indicators/indicator.h"
+			],
+			[
+				"mark",
+				"connectors/market.py"
 			],
 			[
 				"siislo",
@@ -1215,20 +1423,12 @@
 				"connectors/connector.py"
 			],
 			[
-				"init",
-				"sql/initpg.sql"
-			],
-			[
 				"mysl",
 				"connectors/database/mysql.py"
 			],
 			[
 				"mysql",
 				"connectors/database/mysql.py"
-			],
-			[
-				"dat",
-				"connectors/database/database.py"
 			],
 			[
 				"util",
@@ -1255,10 +1455,6 @@
 				"strategies/src/config/strategyconfig.cpp"
 			],
 			[
-				"initm",
-				"sql/initmy.sql"
-			],
-			[
 				"p",
 				"connectors/database/pgsql.py"
 			],
@@ -1269,10 +1465,6 @@
 			[
 				".sql",
 				"sql/initmy.sql"
-			],
-			[
-				"mark",
-				"connectors/market.py"
 			],
 			[
 				"market",
@@ -1557,106 +1749,6 @@
 			[
 				"ytr",
 				"strategy/strategytrade.py"
-			],
-			[
-				"fa",
-				"strategy/forexalpha/fastrategytrader.py"
-			],
-			[
-				"fastra",
-				"strategy/forexalpha/fastrategytrader.py"
-			],
-			[
-				"stra",
-				"strategy/strategytrader.py"
-			],
-			[
-				"term",
-				"terminal/terminal.py"
-			],
-			[
-				"ter",
-				"terminal/terminal.py"
-			],
-			[
-				"fetcher",
-				"watcher/fetcher.py"
-			],
-			[
-				"pre",
-				"prefetch-bitmex.sh"
-			],
-			[
-				"run",
-				"runner.py"
-			],
-			[
-				"bit",
-				"fetch-bitmex"
-			],
-			[
-				"capra",
-				"strategy/cryptoalpha/caparameters2.py"
-			],
-			[
-				"castrat",
-				"strategy/cryptoalpha/castrategytrader.py"
-			],
-			[
-				"fasubb",
-				"strategy/forexalpha/fasubb.py"
-			],
-			[
-				"fasa",
-				"strategy/forexalpha/fasuba.py"
-			],
-			[
-				"volum",
-				"strategy/indicator/volume/volume.py"
-			],
-			[
-				"serv",
-				"monitor/service.py"
-			],
-			[
-				"work",
-				"common/workerpool.py"
-			],
-			[
-				"ig",
-				"fetch-ig"
-			],
-			[
-				"bitmex",
-				"connector/bitmex/connector.py"
-			],
-			[
-				"con",
-				"config/config.py"
-			],
-			[
-				"bitm",
-				"fetch-bitmex"
-			],
-			[
-				"monitor",
-				"monitor/service.py"
-			],
-			[
-				"papertr",
-				"trader/connector/papertrader/trader.py"
-			],
-			[
-				"fac",
-				"strategy/forexalpha/fasubc.py"
-			],
-			[
-				"rsi",
-				"strategy/indicator/rsi/rsi.py"
-			],
-			[
-				"fara",
-				"strategy/forexalpha/faparameters.py"
 			]
 		],
 		"width": 0.0
